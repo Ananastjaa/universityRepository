@@ -1,0 +1,419 @@
+#include <iostream>
+#include <limits>
+#include <cstring>
+
+using namespace std;
+
+// sis ir vajadzigs waitForKey() funkcijas darbam
+const int MAX_STR_LEN = 100;
+char line[MAX_STR_LEN];
+
+void printTree();
+void createPrintRoot();
+void addElement();
+void deleteElement();
+void findElement();
+void travelTree();
+void reverseTree();
+void prinyTreeElementCount();
+void deleteTree();
+
+// korektam ievadam
+int getIntInput() {
+    int num;
+    while (true) {
+        if (cin >> num) return num;
+        cout << "Nepareiza ievade! Ludzu ievadiet veselu skaitli: ";
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    }
+}
+
+class Vertex
+{
+private:
+    int value; 
+
+public:
+    Vertex* left;
+    Vertex* right;
+
+    Vertex(int value) {
+        this->value = value;
+        left = nullptr;
+        right = nullptr;
+    }
+
+    int getValue() const {
+        return value;
+    }
+};
+
+class MyTree
+{
+private: 
+    Vertex* root;
+public:
+
+    MyTree() {
+        root = NULL;
+    }
+
+    MyTree(Vertex* root) {
+        this->root = root;
+    }
+
+    ~MyTree() {
+        deleteVertex(root);
+        cout << "\nKOKS DZESTS -----------------------\n";
+    }
+
+    Vertex* getRoot() const {
+        return root;
+    }
+
+    void deleteSubtree(Vertex* ver)
+    {
+        if (ver)
+        {
+            Vertex* parent = getParent(ver, root);
+            if (parent)
+            {
+                if (parent->left == ver) parent->left = NULL;
+                else if (parent->right == ver) parent->right = NULL;
+            }
+            deleteVertex(ver);
+            cout << "\nElments tika veiksmigi dzests!";
+        }
+        else cout << "\nTada elementa nav!";
+    }
+
+    void deleteVertex(Vertex* ver)
+    {
+        if (!ver) return;
+        deleteVertex(ver->left);
+        deleteVertex(ver->right);
+        if (root == ver) {
+            cout << "\nJa kas tu izdzesi sakni --> visu koku.";
+            root = NULL;
+        }
+        delete ver;
+    }
+
+    Vertex* getParent(Vertex* childVer, Vertex* cur)
+    {
+        if (!cur) return NULL;
+        if (cur->left == childVer || cur->right == childVer) return cur;
+
+        // atgriz parentu uz augšu lai augšējē mezgli un galu galaa root atgrieztu šo mezglu
+        Vertex* parent = getParent(childVer, cur->left);
+        if (parent) return parent;
+
+        // atgriz parentu uz augšu lai augšējē mezgli un galu galaa root atgrieztu šo mezglu
+        parent = getParent(childVer, cur->right);
+        if (parent) return parent;
+
+        return NULL;
+    }
+
+    void printTreeAsTree(Vertex* node, int depth = 0) {
+        if (!node) return;
+
+        printTreeAsTree(node->right, depth + 1);
+
+        if (node == root) cout << "Root:";
+        else cout << "    ";
+        for (int i = 0; i < depth; ++i) {
+            cout << "    "; 
+        }
+        cout << node->getValue() << endl;
+
+        printTreeAsTree(node->left, depth + 1);
+    }
+
+    void printTreeAsTree() {
+        if (!root) {
+            cout << "Tree is empty.\n";
+            return;
+        }
+        printTreeAsTree(root);
+    }
+
+    void printTreeInorder(Vertex* cur) {
+        if (!cur) return;
+        printTreeInorder(cur->left);
+        cout << cur->getValue() << "\t";
+        printTreeInorder(cur->right);
+    }
+
+    void printTreePreorder(Vertex* cur) {
+        if (!cur) return;
+        cout << cur->getValue() << "\t";
+        printTreePreorder(cur->left);
+        printTreePreorder(cur->right);
+    }
+
+    void printTreePostorder(Vertex* cur) {
+        if (!cur) return;
+        printTreePostorder(cur->left);
+        printTreePostorder(cur->right);
+        cout << cur->getValue() << "\t";
+    }
+
+    Vertex* getLastVertex(int val)
+    {
+        Vertex* prev = root;
+        Vertex* cursor = root;
+        while (cursor)
+        {
+            prev = cursor;
+            if (val < cursor->getValue())
+            {
+                cursor = cursor->left;
+            }
+            else cursor = cursor->right;
+        }
+
+        return prev;
+    }
+
+    void add(int val)
+    {
+        Vertex* newNode = new Vertex(val);
+
+        if (!root) root = newNode;
+        else {
+            Vertex* lastNode = getLastVertex(val);
+            if (val < lastNode->getValue()) lastNode->left = newNode;
+            else lastNode->right = newNode;
+        }
+    }
+
+    int getCount(Vertex* cur, int count = 0) {
+        if (!cur) return count;
+        count++;
+        count = getCount(cur->left, count);
+        count = getCount(cur->right, count);
+        return count;
+    }
+
+    Vertex* find(int val, Vertex* cur) {
+        if (!cur) return NULL;
+        if (cur->getValue() == val) return cur;
+
+        Vertex* found = find(val, cur->left);
+        if (found) return found;
+
+        found = find(val, cur->right);
+        if (found) return found;
+
+        return NULL;
+    }
+
+    void swap(Vertex* ver)
+    {
+        if (!ver) return;
+        Vertex* temp = ver->left;
+        ver->left = ver->right;
+        ver->right = temp;
+
+        swap(ver->left);
+        swap(ver->right);
+    }
+};
+
+void waitForKey() {
+    cout << "\nNospied ENTER, lai turpinatu... ";
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    cin.getline(line, MAX_STR_LEN);
+}
+
+MyTree tree;
+int choice, val, elem;
+int num;
+
+int main()
+{
+    cout << "\nAutors: Anastasija Kizika, IT 2. kurss";
+    cout << "\nProgrammas nosaukums: Datu struktura - Koks\n\n";
+    waitForKey();
+
+    while (true)
+    {
+        system("cls");
+        cout << "\n-------------MENU-----------------\n";
+        cout << "1. Izvadit koku\n";
+        cout << "2. Izveidot/izvadit koka sakni\n";
+        cout << "3. Pievienot elementu\n";
+        cout << "4. Dzest elementu\n";
+        cout << "5. Atrast Elementu\n";
+        cout << "6. Izvadit koka elementu skaitu\n";
+        cout << "7. Apstaigat koku\n";
+        cout << "8. Apgriezt koku\n";
+        cout << "9. Dzest visu koku\n";
+        cout << "0. Iziet\n";
+        cout << "Ievadiet jusu izveli: ";
+        choice = getIntInput();
+
+
+        switch (choice)
+        {
+        case 1:
+            printTree();
+            break;
+        case 2:
+            createPrintRoot();
+            break;
+        case 3:
+            addElement();
+            break;
+        case 4:
+            deleteElement();
+            break;
+        case 5:
+            findElement();
+            break;
+        case 6:
+            prinyTreeElementCount();
+            break;
+        case 7:
+            reverseTree();
+            break;
+        case 8:
+            travelTree();
+            break;
+        case 9:
+            deleteTree();
+            break;
+        case 0:
+            cout << "Iziet...\n";
+            return 0;
+        default:
+            cout << "Nepareiza izvele\n";
+        }
+    }
+}
+
+void printTree()
+{
+    if (tree.getRoot() == NULL)  cout << "\nNo sakuma izveideo sakni!!";
+    else
+    {
+        tree.printTreeAsTree();
+        cout << "\nKoka elementu skaits: ";
+        num = tree.getCount(tree.getRoot());
+        cout << num;
+    }
+    waitForKey();
+}
+
+void createPrintRoot()
+{
+    if (tree.getRoot() != NULL) cout << "\nKokam jau ir sakne!! Root = " << tree.getRoot()->getValue();
+    else
+    {
+        cout << "Ievadiet saknes elementu: ";
+        val = getIntInput();
+        tree.add(val);
+    }
+    waitForKey();
+}
+
+void addElement()
+{
+    if (tree.getRoot() == NULL) cout << "\nNo sakuma izveideo sakni!!";
+    else
+    {
+        cout << "Ievadiet jaunu elementu: ";
+        val = getIntInput();
+        tree.add(val);
+    }
+    waitForKey();
+}
+
+void deleteElement()
+{
+    if (tree.getRoot() == NULL) cout << "\nNo sakuma izveideo sakni!!";
+    else
+    {
+        tree.printTreeInorder(tree.getRoot());
+        cout << "\n\nIevadiet elementu, kuru gribi dzest (tiks dzesti ari visi taa berni): ";
+        val = getIntInput();
+        Vertex* vertex = tree.find(val, tree.getRoot());
+        tree.deleteSubtree(vertex);
+    }
+    waitForKey();
+}
+
+void findElement()
+{
+    if (tree.getRoot() == NULL) cout << "\nNo sakuma izveideo sakni!!";
+    else
+    {
+        tree.printTreeInorder(tree.getRoot());
+        cout << "Atrast elementu: ";
+        val = getIntInput();
+        if (tree.find(val, tree.getRoot())) cout << "\nElements atrast!";
+        else  cout << "\nTaada elementa koka nav!";
+    }
+    waitForKey();
+}
+
+void travelTree()
+{
+    if (tree.getRoot() == NULL) cout << "\nNo sakuma izveideo sakni!!";
+    else {
+        cout << "\nInorder print: ";
+        tree.printTreeInorder(tree.getRoot());
+        tree.swap(tree.getRoot());
+        cout << "\n\nKoks tika apgrizts\n\n";
+        cout << "\nInorder print: ";
+        tree.printTreeInorder(tree.getRoot());
+    }
+    waitForKey();
+}
+
+void reverseTree()
+{
+    if (tree.getRoot() == NULL) cout << "\nNo sakuma izveideo sakni!!";
+    else
+    {
+        cout << "\nIzvelies koka apstsaigasanas veidu (inorder - 1, preorder - 2, postorder - 3): ";
+        val = getIntInput();
+
+        switch (val) {
+        case 1:
+            tree.printTreeInorder(tree.getRoot());
+            break;
+        case 2:
+            tree.printTreePreorder(tree.getRoot());
+            break;
+        case 3:
+            tree.printTreePostorder(tree.getRoot());
+            break;
+        default:
+            cout << "\nNepareiza izvele!";
+            break;
+        }
+    }
+    waitForKey();
+}
+
+void prinyTreeElementCount()
+{
+    if (tree.getRoot() == NULL) cout << "\nNo sakuma izveideo sakni!!";
+    else
+    {
+        cout << "Koka elementu skaits: ";
+        num = tree.getCount(tree.getRoot());
+        cout << num;
+    }
+    waitForKey();
+}
+
+void deleteTree()
+{
+    if (tree.getRoot() == NULL) cout << "\nNo sakuma izveideo sakni!!";
+    else tree.deleteVertex(tree.getRoot());
+    waitForKey();
+}
